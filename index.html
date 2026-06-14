@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>日本地図パズル</title>
+  <meta name="description" content="小学生向けの楽しい日本地図パズルゲームです。">
+  <link rel="stylesheet" href="./src/css/style.css">
+</head>
+<body>
+  <header>
+    <h1>日本地図パズル</h1>
+    <p>ピースをドラッグして、日本地図を完成させよう！</p>
+  </header>
+
+  <main id="game-area">
+    <!-- 地図とピースが表示されるエリア -->
+    <div id="map-container">
+      <!-- ここに SVG が動的に読み込まれます -->
+    </div>
+
+    <!-- 進捗パネル -->
+    <div id="progress-panel">
+      <h3>完成した都道府県</h3>
+      <div class="progress-bar">
+        <div id="progress-fill" class="progress-fill"></div>
+      </div>
+      <div id="progress-text" class="progress-text">0 / 47</div>
+    </div>
+
+    <!-- コントロールボタン -->
+    <div id="controls">
+      <button id="reset-btn" class="ctrl-btn">最初から</button>
+      <button id="tidy-btn" class="ctrl-btn">並べ直す</button>
+      <button id="mute-btn" class="ctrl-btn">音：ON</button>
+    </div>
+
+    <!-- 県名ポップアップ -->
+    <div id="prefecture-popup" class="pref-popup"></div>
+
+    <!-- クイズ用オーバーレイ -->
+    <div id="quiz-overlay" class="overlay">
+      <div class="quiz-modal">
+        <div class="quiz-header">地方完成クイズ！</div>
+        <div id="quiz-region-title" class="quiz-region-title">四国地方</div>
+        <div id="quiz-question" class="quiz-question">問題がここに入ります</div>
+        <div id="quiz-options" class="quiz-options">
+          <button class="option-btn" data-index="0">選択肢1</button>
+          <button class="option-btn" data-index="1">選択肢2</button>
+          <button class="option-btn" data-index="2">選択肢3</button>
+          <button class="option-btn" data-index="3">選択肢4</button>
+        </div>
+        <div id="quiz-hint" class="quiz-hint">ヒントがここに入ります</div>
+      </div>
+    </div>
+
+    <!-- 正誤判定エフェクト -->
+    <div id="result-overlay" class="result-overlay">
+      <div id="result-badge" class="result-badge">〇</div>
+    </div>
+
+    <!-- キラキラエフェクトの入れ物 -->
+    <div id="particles-container" class="particles-container"></div>
+  </main>
+
+  <script type="module" src="./src/js/main.js"></script>
+</body>
+</html>

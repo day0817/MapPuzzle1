@@ -1,0 +1,437 @@
+@import url('https://fonts.googleapis.com/css2?family=M+PLUS+Rounded+1c:wght@400;700&display=swap');
+
+:root {
+  --bg-color: #eef7f9;
+  --panel-bg: rgba(255, 255, 255, 0.85);
+  --text-color: #334e57;
+  --accent-color: #ff6b81;
+  --correct-color: #2ed573;
+  --incorrect-color: #ff4757;
+  
+  /* 地方ごとのパステルカラー */
+  --color-hokkaido-tohoku: #a8e6cf; /* パステルグリーン */
+  --color-kanto: #dcedc1;           /* パステルイエローグリーン */
+  --color-chubu: #ffd3b6;           /* パステルオレンジ */
+  --color-kinki: #ffaaa5;           /* パステルピンクピンク */
+  --color-chugoku: #ff8b94;         /* パステルレッド */
+  --color-shikoku: #ffb7b2;         /* パステルコーラル */
+  --color-kyushu-okinawa: #b5ead7;  /* パステルミント */
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  font-family: 'M PLUS Rounded 1c', sans-serif;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  background-color: var(--bg-color);
+  background-image: radial-gradient(#d3ecf0 1.5px, transparent 1.5px);
+  background-size: 30px 30px;
+  color: var(--text-color);
+  overflow: hidden;
+  height: 100vh;
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+}
+
+header {
+  padding: 15px;
+  text-align: center;
+  background: var(--panel-bg);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+}
+
+header h1 {
+  font-size: 24px;
+  font-weight: 700;
+  color: #2b7a8d;
+  text-shadow: 1px 1px 0 #fff;
+  margin-bottom: 5px;
+}
+
+header p {
+  font-size: 14px;
+  color: #5c8491;
+}
+
+/* ゲームエリア */
+#game-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 10px;
+  overflow: hidden;
+  min-height: 0; /* 子要素の縮小を許可 */
+}
+
+#map-container {
+  flex: 1;
+  width: 100%;
+  height: 100%;
+  max-width: min(800px, 70vh);
+  max-height: min(800px, 70vh);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  position: relative;
+  min-height: 0; /* 地図の自動縮小を許可 */
+}
+
+svg.map-svg {
+  width: 100%;
+  height: 100%;
+  max-width: 100%;
+  max-height: 100%;
+  filter: drop-shadow(0 6px 12px rgba(0,0,0,0.08));
+}
+
+/* 白地図レイヤー */
+.basemap {
+  fill: #ffffff;
+  stroke: #c2d5db;
+  stroke-width: 1.5;
+  stroke-linejoin: round;
+}
+
+.basemap-prefecture {
+  transition: fill 0.3s ease;
+}
+
+/* 地方ごとの完成時（白地図）のパステルカラー適用：未セットのピースと区別しやすくするため、透明度を下げ、落ち着いたトーンにする */
+.basemap-prefecture.filled-hokkaido-tohoku { fill: var(--color-hokkaido-tohoku); opacity: 0.38; stroke: #b6ccd1; stroke-width: 1.2; }
+.basemap-prefecture.filled-kanto { fill: var(--color-kanto); opacity: 0.38; stroke: #b6ccd1; stroke-width: 1.2; }
+.basemap-prefecture.filled-chubu { fill: var(--color-chubu); opacity: 0.38; stroke: #b6ccd1; stroke-width: 1.2; }
+.basemap-prefecture.filled-kinki { fill: var(--color-kinki); opacity: 0.38; stroke: #b6ccd1; stroke-width: 1.2; }
+.basemap-prefecture.filled-chugoku { fill: var(--color-chugoku); opacity: 0.38; stroke: #b6ccd1; stroke-width: 1.2; }
+.basemap-prefecture.filled-shikoku { fill: var(--color-shikoku); opacity: 0.38; stroke: #b6ccd1; stroke-width: 1.2; }
+.basemap-prefecture.filled-kyushu-okinawa { fill: var(--color-kyushu-okinawa); opacity: 0.38; stroke: #b6ccd1; stroke-width: 1.2; }
+
+/* ピースレイヤー（未スナップ） */
+.pieces .piece {
+  cursor: grab;
+  stroke: #ffffff;      /* 白い境界線 */
+  stroke-width: 2.8;    /* 太い境界線 */
+  stroke-linejoin: round;
+  filter: drop-shadow(0 6px 12px rgba(43, 78, 87, 0.3)); /* より深い影で浮き上がらせる */
+  transition: transform 0.1s ease-out, filter 0.1s ease-out, stroke-width 0.2s ease;
+}
+
+.pieces .piece:hover {
+  filter: drop-shadow(0 10px 18px rgba(43, 78, 87, 0.4)) brightness(1.03);
+  stroke-width: 3.4;
+}
+
+.pieces .piece.dragging {
+  cursor: grabbing;
+  filter: drop-shadow(0 16px 28px rgba(43, 78, 87, 0.45)) brightness(1.06);
+  stroke-width: 4.0;
+}
+
+/* はまり終わったピース自体は非表示にし、白地図の完成塗りつぶしのみを活かす */
+.pieces .piece.snapped {
+  display: none !important;
+}
+
+/* 未完成ピースの鮮やかな地方カラー */
+.pieces .piece.hokkaido-tohoku { fill: #8fe0c2; }
+.pieces .piece.kanto { fill: #cfe6ad; }
+.pieces .piece.chubu { fill: #ffc49e; }
+.pieces .piece.kinki { fill: #ff9991; }
+.pieces .piece.chugoku { fill: #ff737f; }
+.pieces .piece.shikoku { fill: #ffa29c; }
+.pieces .piece.kyushu-okinawa { fill: #9fe2c9; }
+
+
+/* クイズモーダル */
+.overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(43, 78, 87, 0.4);
+  backdrop-filter: blur(5px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.3s ease;
+  z-index: 100;
+}
+
+.overlay.show {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.quiz-modal {
+  background: #ffffff;
+  border-radius: 24px;
+  width: 90%;
+  max-width: 500px;
+  padding: 30px;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+  transform: scale(0.7);
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+  border: 6px solid #eef7f9;
+}
+
+.overlay.show .quiz-modal {
+  transform: scale(1);
+}
+
+.quiz-header {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--accent-color);
+  margin-bottom: 10px;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.quiz-region-title {
+  font-size: 20px;
+  font-weight: 700;
+  color: #2b7a8d;
+  margin-bottom: 20px;
+  background: #eef7f9;
+  padding: 8px 16px;
+  border-radius: 12px;
+  display: inline-block;
+}
+
+.quiz-question {
+  font-size: 18px;
+  font-weight: 700;
+  line-height: 1.6;
+  margin-bottom: 25px;
+  color: var(--text-color);
+}
+
+.quiz-options {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+
+.option-btn {
+  background: #ffffff;
+  border: 3px solid #c2d5db;
+  border-radius: 16px;
+  padding: 15px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-color);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  box-shadow: 0 4px 0 #c2d5db;
+}
+
+.option-btn:hover {
+  background: #eef7f9;
+  border-color: #2b7a8d;
+  box-shadow: 0 4px 0 #2b7a8d;
+  transform: translateY(-2px);
+}
+
+.option-btn:active {
+  transform: translateY(2px);
+  box-shadow: 0 0px 0 #2b7a8d;
+}
+
+.quiz-hint {
+  font-size: 14px;
+  color: #8da4ac;
+  background: #fafdfd;
+  padding: 10px;
+  border-radius: 10px;
+  border: 1px dashed #c2d5db;
+  margin-top: 15px;
+  display: none;
+}
+
+/* クイズ結果演出 */
+.result-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 200;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.2s ease;
+}
+
+.result-overlay.show {
+  opacity: 1;
+}
+
+.result-badge {
+  font-size: 80px;
+  font-weight: 700;
+  transform: scale(0.2);
+  transition: transform 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.result-overlay.show .result-badge {
+  transform: scale(1);
+}
+
+.result-correct {
+  color: var(--correct-color);
+  text-shadow: 0 0 20px rgba(46, 213, 115, 0.4);
+}
+
+.result-incorrect {
+  color: var(--incorrect-color);
+  text-shadow: 0 0 20px rgba(255, 71, 87, 0.4);
+}
+
+/* UIコントロールパネル */
+#controls {
+  position: absolute;
+  bottom: 20px;
+  left: 20px;
+  z-index: 10;
+  display: flex;
+  gap: 10px;
+}
+
+.ctrl-btn {
+  background: var(--panel-bg);
+  border: none;
+  padding: 10px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #2b7a8d;
+  cursor: pointer;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.05);
+  backdrop-filter: blur(10px);
+  transition: all 0.2s ease;
+  border: 2px solid transparent;
+}
+
+.ctrl-btn:hover {
+  background: #ffffff;
+  border-color: #2b7a8d;
+  transform: translateY(-2px);
+}
+
+/* プログレス表示 */
+#progress-panel {
+  position: absolute;
+  top: 90px;
+  right: 20px;
+  background: var(--panel-bg);
+  padding: 15px;
+  border-radius: 16px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+  backdrop-filter: blur(10px);
+  z-index: 10;
+  width: 200px;
+}
+
+#progress-panel h3 {
+  font-size: 14px;
+  margin-bottom: 8px;
+  color: #2b7a8d;
+  text-align: center;
+}
+
+.progress-bar {
+  background: #e0ecef;
+  height: 12px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 8px;
+}
+
+.progress-fill {
+  background: linear-gradient(90deg, #ff6b81, #ff8b94);
+  height: 100%;
+  width: 0%;
+  transition: width 0.5s cubic-bezier(0.1, 0.8, 0.2, 1);
+}
+
+.progress-text {
+  font-size: 12px;
+  text-align: center;
+  color: #5c8491;
+  font-weight: 700;
+}
+
+/* キラキラパーティクル用コンテナ */
+.particles-container {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+  z-index: 50;
+}
+
+.particle {
+  position: absolute;
+  width: 10px;
+  height: 10px;
+  background: gold;
+  border-radius: 50%;
+  pointer-events: none;
+  animation: explode 0.8s ease-out forwards;
+}
+
+@keyframes explode {
+  0% {
+    transform: translate(0, 0) scale(1);
+    opacity: 1;
+  }
+  100% {
+    transform: translate(var(--dx), var(--dy)) scale(0);
+    opacity: 0;
+  }
+}
+
+/* 県名ポップアップ */
+.pref-popup {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%) scale(0.6);
+  background: rgba(255, 255, 255, 0.96);
+  border: 6px solid var(--accent-color);
+  color: var(--text-color);
+  padding: 24px 48px;
+  border-radius: 24px;
+  font-size: 38px;
+  font-weight: 700;
+  box-shadow: 0 12px 36px rgba(43, 78, 87, 0.25);
+  pointer-events: none;
+  opacity: 0;
+  z-index: 150;
+  transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+  letter-spacing: 2px;
+}
+
+.pref-popup.show {
+  opacity: 1;
+  transform: translate(-50%, -50%) scale(1);
+}
